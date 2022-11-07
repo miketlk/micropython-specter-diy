@@ -97,7 +97,7 @@ def main():
     vpath = [p.strip() for p in args.vpath.split(',')]
 
     modules = set()
-    for obj_file in args.files:
+    for obj_file in sorted(args.files):
         c_file = find_c_file(obj_file, vpath)
         modules |= find_module_registrations(c_file)
 
