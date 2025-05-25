@@ -1,5 +1,5 @@
 /*
- * This file is part of the Micro Python project, http://micropython.org/
+ * This file is part of the MicroPython project, http://micropython.org/
  *
  * The MIT License (MIT)
  *
@@ -135,7 +135,7 @@ bool microbit_display_active_animation(void) {
     return async_mode == ASYNC_MODE_ANIMATION;
 }
 
-STATIC void async_stop(void) {
+static void async_stop(void) {
     async_iterator = NULL;
     async_mode = ASYNC_MODE_STOPPED;
     async_tick = 0;
@@ -146,10 +146,10 @@ STATIC void async_stop(void) {
     wakeup_event = true;
 }
 
-STATIC void wait_for_event(void) {
+static void wait_for_event(void) {
     while (!wakeup_event) {
         // allow CTRL-C to stop the animation
-        if (MP_STATE_VM(mp_pending_exception) != MP_OBJ_NULL) {
+        if (MP_STATE_THREAD(mp_pending_exception) != MP_OBJ_NULL) {
             async_stop();
             return;
         }
@@ -305,7 +305,7 @@ static void draw_object(mp_obj_t obj) {
             async_stop();
         }
     } else {
-        MP_STATE_VM(mp_pending_exception) = mp_obj_new_exception_msg(&mp_type_TypeError, "not an image.");
+        mp_sched_exception(mp_obj_new_exception_msg(&mp_type_TypeError, MP_ERROR_TEXT("not an image.")));
         async_stop();
     }
 }
@@ -341,7 +341,7 @@ static void microbit_display_update(void) {
                     if (mp_obj_get_type(nlr.ret_val) == &mp_type_MemoryError) {
                         mp_printf(&mp_plat_print, "Allocation in interrupt handler");
                     }
-                    MP_STATE_VM(mp_pending_exception) = MP_OBJ_FROM_PTR(nlr.ret_val);
+                    mp_sched_exception(MP_OBJ_FROM_PTR(nlr.ret_val));
                 }
                 obj = MP_OBJ_STOP_ITERATION;
             }
@@ -499,16 +499,16 @@ MP_DEFINE_CONST_FUN_OBJ_1(microbit_display_clear_obj, microbit_display_clear_fun
 
 void microbit_display_set_pixel(microbit_display_obj_t *display, mp_int_t x, mp_int_t y, mp_int_t bright) {
     if (x < 0 || y < 0 || x > 4 || y > 4) {
-        mp_raise_ValueError("index out of bounds.");
+        mp_raise_ValueError(MP_ERROR_TEXT("index out of bounds."));
     }
     if (bright < 0 || bright > MAX_BRIGHTNESS) {
-        mp_raise_ValueError("brightness out of bounds.");
+        mp_raise_ValueError(MP_ERROR_TEXT("brightness out of bounds."));
     }
     display->image_buffer[x][y] = bright;
     display->brightnesses |= (1 << bright);
 }
 
-STATIC mp_obj_t microbit_display_set_pixel_func(mp_uint_t n_args, const mp_obj_t *args) {
+static mp_obj_t microbit_display_set_pixel_func(mp_uint_t n_args, const mp_obj_t *args) {
     (void)n_args;
     microbit_display_obj_t *self = (microbit_display_obj_t*)args[0];
     microbit_display_set_pixel(self, mp_obj_get_int(args[1]), mp_obj_get_int(args[2]), mp_obj_get_int(args[3]));
@@ -518,18 +518,18 @@ MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(microbit_display_set_pixel_obj, 4, 4, microb
 
 mp_int_t microbit_display_get_pixel(microbit_display_obj_t *display, mp_int_t x, mp_int_t y) {
     if (x < 0 || y < 0 || x > 4 || y > 4) {
-        mp_raise_ValueError("index out of bounds.");
+        mp_raise_ValueError(MP_ERROR_TEXT("index out of bounds."));
     }
     return display->image_buffer[x][y];
 }
 
-STATIC mp_obj_t microbit_display_get_pixel_func(mp_obj_t self_in, mp_obj_t x_in, mp_obj_t y_in) {
+static mp_obj_t microbit_display_get_pixel_func(mp_obj_t self_in, mp_obj_t x_in, mp_obj_t y_in) {
     microbit_display_obj_t *self = (microbit_display_obj_t*)self_in;
     return MP_OBJ_NEW_SMALL_INT(microbit_display_get_pixel(self, mp_obj_get_int(x_in), mp_obj_get_int(y_in)));
 }
 MP_DEFINE_CONST_FUN_OBJ_3(microbit_display_get_pixel_obj, microbit_display_get_pixel_func);
 
-STATIC const mp_rom_map_elem_t microbit_display_locals_dict_table[] = {
+static const mp_rom_map_elem_t microbit_display_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_get_pixel),  MP_ROM_PTR(&microbit_display_get_pixel_obj) },
     { MP_ROM_QSTR(MP_QSTR_set_pixel),  MP_ROM_PTR(&microbit_display_set_pixel_obj) },
     { MP_ROM_QSTR(MP_QSTR_show), MP_ROM_PTR(&microbit_display_show_obj) },
@@ -540,23 +540,14 @@ STATIC const mp_rom_map_elem_t microbit_display_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_is_on),  MP_ROM_PTR(&microbit_display_is_on_obj) },
 };
 
-STATIC MP_DEFINE_CONST_DICT(microbit_display_locals_dict, microbit_display_locals_dict_table);
+static MP_DEFINE_CONST_DICT(microbit_display_locals_dict, microbit_display_locals_dict_table);
 
-const mp_obj_type_t microbit_display_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_MicroBitDisplay,
-    .print = NULL,
-    .make_new = NULL,
-    .call = NULL,
-    .unary_op = NULL,
-    .binary_op = NULL,
-    .attr = NULL,
-    .subscr = NULL,
-    .getiter = NULL,
-    .iternext = NULL,
-    .buffer_p = {NULL},
-    .locals_dict = (mp_obj_dict_t*)&microbit_display_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    microbit_display_type,
+    MP_QSTR_MicroBitDisplay,
+    MP_TYPE_FLAG_NONE,
+    locals_dict, &microbit_display_locals_dict
+    );
 
 microbit_display_obj_t microbit_display_obj = {
     {&microbit_display_type},
@@ -574,3 +565,5 @@ void microbit_display_init(void) {
         nrf_gpio_cfg_output(i);
     }
 }
+
+MP_REGISTER_ROOT_POINTER(void *async_data[2]);

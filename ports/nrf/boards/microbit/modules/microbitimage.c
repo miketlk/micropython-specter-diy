@@ -1,5 +1,5 @@
 /*
- * This file is part of the Micro Python project, http://micropython.org/
+ * This file is part of the MicroPython project, http://micropython.org/
  *
  * The MIT License (MIT)
  *
@@ -40,7 +40,7 @@ const monochrome_5by5_t microbit_blank_image = {
     { 0, 0, 0 }
 };
 
-STATIC void microbit_image_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
+static void microbit_image_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     microbit_image_obj_t *self = (microbit_image_obj_t*)self_in;
     mp_printf(print, "Image(");
     if (kind == PRINT_STR)
@@ -112,9 +112,8 @@ mp_int_t imageHeight(microbit_image_obj_t * p_image) {
         return p_image->greyscale.height;
 }
 
-STATIC greyscale_t *greyscale_new(mp_int_t w, mp_int_t h) {
-    greyscale_t *result = m_new_obj_var(greyscale_t, uint8_t, (w*h+1)>>1);
-    result->base.type = &microbit_image_type;
+static greyscale_t *greyscale_new(mp_int_t w, mp_int_t h) {
+    greyscale_t *result = mp_obj_malloc_var(greyscale_t, byte_data, uint8_t, (w*h+1)>>1, &microbit_image_type);
     result->five = 0;
     result->width = w;
     result->height = h;
@@ -145,7 +144,7 @@ greyscale_t * imageInvert(microbit_image_obj_t * p_image) {
     return result;
 }
 
-STATIC microbit_image_obj_t *image_from_parsed_str(const char *s, mp_int_t len) {
+static microbit_image_obj_t *image_from_parsed_str(const char *s, mp_int_t len) {
     mp_int_t w = 0;
     mp_int_t h = 0;
     mp_int_t line_len = 0;
@@ -162,7 +161,7 @@ STATIC microbit_image_obj_t *image_from_parsed_str(const char *s, mp_int_t len) 
         } else if ('c' >= '0' && c <= '9') {
             ++line_len;
         } else {
-            mp_raise_ValueError("Unexpected character in Image definition.");
+            mp_raise_ValueError(MP_ERROR_TEXT("Unexpected character in Image definition."));
         }
     }
     if (line_len) {
@@ -202,7 +201,7 @@ STATIC microbit_image_obj_t *image_from_parsed_str(const char *s, mp_int_t len) 
 }
 
 
-STATIC mp_obj_t microbit_image_make_new(const mp_obj_type_t *type_in, mp_uint_t n_args, mp_uint_t n_kw, const mp_obj_t *args) {
+static mp_obj_t microbit_image_make_new(const mp_obj_type_t *type_in, mp_uint_t n_args, mp_uint_t n_kw, const mp_obj_t *args) {
     (void)type_in;
     mp_arg_check_num(n_args, n_kw, 0, 3, false);
 
@@ -220,14 +219,14 @@ STATIC mp_obj_t microbit_image_make_new(const mp_obj_type_t *type_in, mp_uint_t 
                 const char *str = mp_obj_str_get_data(args[0], &len);
                 // make image from string
                 if (len == 1) {
-                    /* For a single charater, return the font glyph */
+                    /* For a single character, return the font glyph */
                     return microbit_image_for_char(str[0]);
                 } else {
                     /* Otherwise parse the image description string */
                     return image_from_parsed_str(str, len);
                 }
             } else {
-                mp_raise_msg(&mp_type_TypeError, "Image(s) takes a string.");
+                mp_raise_TypeError(MP_ERROR_TEXT("Image(s) takes a string."));
             }
         }
 
@@ -243,7 +242,7 @@ STATIC mp_obj_t microbit_image_make_new(const mp_obj_type_t *type_in, mp_uint_t 
                 mp_get_buffer_raise(args[2], &bufinfo, MP_BUFFER_READ);
 
                 if (w < 0 || h < 0 || (size_t)(w * h) != bufinfo.len) {
-                    mp_raise_ValueError("image data is incorrect size");
+                    mp_raise_ValueError(MP_ERROR_TEXT("image data is incorrect size"));
                 }
                 mp_int_t i = 0;
                 for (mp_int_t y = 0; y < h; y++) {
@@ -258,7 +257,7 @@ STATIC mp_obj_t microbit_image_make_new(const mp_obj_type_t *type_in, mp_uint_t 
         }
 
         default: {
-            mp_raise_msg(&mp_type_TypeError, "Image() takes 0 to 3 arguments");
+            mp_raise_TypeError(MP_ERROR_TEXT("Image() takes 0 to 3 arguments"));
         }
     }
 }
@@ -271,7 +270,7 @@ static void clear_rect(greyscale_t *img, mp_int_t x0, mp_int_t y0,mp_int_t x1, m
     }
 }
 
-STATIC void image_blit(microbit_image_obj_t *src, greyscale_t *dest, mp_int_t x, mp_int_t y, mp_int_t w, mp_int_t h, mp_int_t xdest, mp_int_t ydest) {
+static void image_blit(microbit_image_obj_t *src, greyscale_t *dest, mp_int_t x, mp_int_t y, mp_int_t w, mp_int_t h, mp_int_t xdest, mp_int_t ydest) {
     if (w < 0)
         w = 0;
     if (h < 0)
@@ -306,7 +305,7 @@ STATIC void image_blit(microbit_image_obj_t *src, greyscale_t *dest, mp_int_t x,
             greyscaleSetPixelValue(dest, i+xdest-x, j+ydest-y, val);
         }
     }
-    // Adjust intersection rectange to dest
+    // Adjust intersection rectangle to dest
     intersect_x0 += xdest-x;
     intersect_y0 += ydest-y;
     intersect_x1 += xdest-x;
@@ -324,7 +323,7 @@ greyscale_t *image_shift(microbit_image_obj_t *self, mp_int_t x, mp_int_t y) {
     return result;
 }
 
-STATIC microbit_image_obj_t *image_crop(microbit_image_obj_t *img, mp_int_t x, mp_int_t y, mp_int_t w, mp_int_t h) {
+static microbit_image_obj_t *image_crop(microbit_image_obj_t *img, mp_int_t x, mp_int_t y, mp_int_t w, mp_int_t h) {
     if (w < 0)
         w = 0;
     if (h < 0)
@@ -351,19 +350,19 @@ mp_obj_t microbit_image_get_pixel(mp_obj_t self_in, mp_obj_t x_in, mp_obj_t y_in
     mp_int_t x = mp_obj_get_int(x_in);
     mp_int_t y = mp_obj_get_int(y_in);
     if (x < 0 || y < 0) {
-        mp_raise_ValueError("index cannot be negative");
+        mp_raise_ValueError(MP_ERROR_TEXT("index can't be negative"));
     }
     if (x < imageWidth(self) && y < imageHeight(self)) {
         return MP_OBJ_NEW_SMALL_INT(imageGetPixelValue(self, x, y));
     }
-    mp_raise_ValueError("index too large");
+    mp_raise_ValueError(MP_ERROR_TEXT("index too large"));
 }
 MP_DEFINE_CONST_FUN_OBJ_3(microbit_image_get_pixel_obj, microbit_image_get_pixel);
 
 /* Raise an exception if not mutable */
 static void check_mutability(microbit_image_obj_t *self) {
     if (self->base.five) {
-        mp_raise_msg(&mp_type_TypeError, "image cannot be modified (try copying first)");
+        mp_raise_TypeError(MP_ERROR_TEXT("image can't be modified (try copying first)"));
     }
 }
 
@@ -375,16 +374,16 @@ mp_obj_t microbit_image_set_pixel(mp_uint_t n_args, const mp_obj_t *args) {
     mp_int_t x = mp_obj_get_int(args[1]);
     mp_int_t y = mp_obj_get_int(args[2]);
     if (x < 0 || y < 0) {
-        mp_raise_ValueError("index cannot be negative");
+        mp_raise_ValueError(MP_ERROR_TEXT("index can't be negative"));
     }
     mp_int_t bright = mp_obj_get_int(args[3]);
     if (bright < 0 || bright > MAX_BRIGHTNESS)
-        mp_raise_ValueError("brightness out of bounds.");
+        mp_raise_ValueError(MP_ERROR_TEXT("brightness out of bounds."));
     if (x < imageWidth(self) && y < imageHeight(self)) {
         greyscaleSetPixelValue(&(self->greyscale), x, y, bright);
         return mp_const_none;
     }
-    mp_raise_ValueError("index too large");
+    mp_raise_ValueError(MP_ERROR_TEXT("index too large"));
 }
 MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(microbit_image_set_pixel_obj, 4, 4, microbit_image_set_pixel);
 
@@ -393,7 +392,7 @@ mp_obj_t microbit_image_fill(mp_obj_t self_in, mp_obj_t n_in) {
     check_mutability(self);
     mp_int_t n = mp_obj_get_int(n_in);
     if (n < 0 || n > MAX_BRIGHTNESS) {
-        mp_raise_ValueError("brightness out of bounds.");
+        mp_raise_ValueError(MP_ERROR_TEXT("brightness out of bounds."));
     }
     greyscaleFill(&self->greyscale, n);
     return mp_const_none;
@@ -406,17 +405,17 @@ mp_obj_t microbit_image_blit(mp_uint_t n_args, const mp_obj_t *args) {
 
     mp_obj_t src = args[1];
     if (mp_obj_get_type(src) != &microbit_image_type) {
-        mp_raise_msg(&mp_type_TypeError, "expecting an image");
+        mp_raise_TypeError(MP_ERROR_TEXT("expecting an image"));
     }
     if (n_args == 7) {
-        mp_raise_msg(&mp_type_TypeError, "must specify both offsets");
+        mp_raise_TypeError(MP_ERROR_TEXT("must specify both offsets"));
     }
     mp_int_t x = mp_obj_get_int(args[2]);
     mp_int_t y = mp_obj_get_int(args[3]);
     mp_int_t w = mp_obj_get_int(args[4]);
     mp_int_t h = mp_obj_get_int(args[5]);
     if (w < 0 || h < 0) {
-        mp_raise_ValueError("size cannot be negative");
+        mp_raise_ValueError(MP_ERROR_TEXT("size can't be negative"));
     }
     mp_int_t xdest;
     mp_int_t ydest;
@@ -484,7 +483,7 @@ mp_obj_t microbit_image_invert(mp_obj_t self_in) {
 MP_DEFINE_CONST_FUN_OBJ_1(microbit_image_invert_obj, microbit_image_invert);
 
 
-STATIC const mp_rom_map_elem_t microbit_image_locals_dict_table[] = {
+static const mp_rom_map_elem_t microbit_image_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_width), MP_ROM_PTR(&microbit_image_width_obj) },
     { MP_ROM_QSTR(MP_QSTR_height), MP_ROM_PTR(&microbit_image_height_obj) },
     { MP_ROM_QSTR(MP_QSTR_get_pixel), MP_ROM_PTR(&microbit_image_get_pixel_obj) },
@@ -566,14 +565,14 @@ STATIC const mp_rom_map_elem_t microbit_image_locals_dict_table[] = {
     { MP_ROM_QSTR(MP_QSTR_SNAKE), MP_ROM_PTR(&microbit_const_image_snake_obj) },
 };
 
-STATIC MP_DEFINE_CONST_DICT(microbit_image_locals_dict, microbit_image_locals_dict_table);
+static MP_DEFINE_CONST_DICT(microbit_image_locals_dict, microbit_image_locals_dict_table);
 
 #define THE_FONT font_pendolino3_5x5_pad3msb
 
 #define ASCII_START 32
 #define ASCII_END 126
 
-STATIC const unsigned char *get_font_data_from_char(char c) {
+static const unsigned char *get_font_data_from_char(char c) {
     if (c < ASCII_START || c > ASCII_END) {
         c = '?';
     }
@@ -581,7 +580,7 @@ STATIC const unsigned char *get_font_data_from_char(char c) {
     return THE_FONT + offset;
 }
 
-STATIC mp_int_t get_pixel_from_font_data(const unsigned char *data, int x, int y) {
+static mp_int_t get_pixel_from_font_data(const unsigned char *data, int x, int y) {
     /* The following logic belongs in MicroBitFont */
     return ((data[y]>>(4-x))&1);
 }
@@ -608,7 +607,7 @@ microbit_image_obj_t *microbit_image_dim(microbit_image_obj_t *lhs, mp_float_t f
 microbit_image_obj_t *microbit_image_dim(microbit_image_obj_t *lhs, mp_int_t fval) {
 #endif
     if (fval < 0)
-        mp_raise_ValueError("Brightness multiplier must not be negative.");
+        mp_raise_ValueError(MP_ERROR_TEXT("Brightness multiplier must not be negative."));
     greyscale_t *result = greyscale_new(imageWidth(lhs), imageHeight(lhs));
     for (int x = 0; x < imageWidth(lhs); ++x) {
         for (int y = 0; y < imageWidth(lhs); ++y) {
@@ -628,7 +627,7 @@ microbit_image_obj_t *microbit_image_sum(microbit_image_obj_t *lhs, microbit_ima
     mp_int_t w = imageWidth(lhs);
     if (imageHeight(rhs) != h || imageWidth(lhs) != w) {
 // TODO: verify that image width in test above should really test (lhs != w)
-        mp_raise_ValueError("Images must be the same size.");
+        mp_raise_ValueError(MP_ERROR_TEXT("Images must be the same size."));
     }
     greyscale_t *result = greyscale_new(w, h);
     for (int x = 0; x < w; ++x) {
@@ -646,7 +645,7 @@ microbit_image_obj_t *microbit_image_sum(microbit_image_obj_t *lhs, microbit_ima
     return (microbit_image_obj_t *)result;
 }
 
-STATIC mp_obj_t image_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
+static mp_obj_t image_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs_in) {
     if (mp_obj_get_type(lhs_in) != &microbit_image_type) {
         return MP_OBJ_NULL; // op not supported
     }
@@ -679,21 +678,15 @@ STATIC mp_obj_t image_binary_op(mp_binary_op_t op, mp_obj_t lhs_in, mp_obj_t rhs
 }
 
 
-const mp_obj_type_t microbit_image_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_MicroBitImage,
-    .print = microbit_image_print,
-    .make_new = microbit_image_make_new,
-    .call = NULL,
-    .unary_op = NULL,
-    .binary_op = image_binary_op,
-    .attr = NULL,
-    .subscr = NULL,
-    .getiter = NULL,
-    .iternext = NULL,
-    .buffer_p = {NULL},
-    .locals_dict = (mp_obj_dict_t*)&microbit_image_locals_dict,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    microbit_image_type,
+    MP_QSTR_MicroBitImage,
+    MP_TYPE_FLAG_NONE,
+    make_new, microbit_image_make_new,
+    print, microbit_image_print,
+    binary_op, image_binary_op,
+    locals_dict, &microbit_image_locals_dict
+    );
 
 typedef struct _scrolling_string_t {
     mp_obj_base_t base;
@@ -722,8 +715,7 @@ extern const mp_obj_type_t microbit_scrolling_string_type;
 extern const mp_obj_type_t microbit_scrolling_string_iterator_type;
 
 mp_obj_t scrolling_string_image_iterable(const char* str, mp_uint_t len, mp_obj_t ref, bool monospace, bool repeat) {
-    scrolling_string_t *result = m_new_obj(scrolling_string_t);
-    result->base.type = &microbit_scrolling_string_type;
+    scrolling_string_t *result = mp_obj_malloc(scrolling_string_t, &microbit_scrolling_string_type);
     result->str = str;
     result->len = len;
     result->ref = ref;
@@ -732,7 +724,7 @@ mp_obj_t scrolling_string_image_iterable(const char* str, mp_uint_t len, mp_obj_
     return result;
 }
 
-STATIC int font_column_non_blank(const unsigned char *font_data, unsigned int col) {
+static int font_column_non_blank(const unsigned char *font_data, unsigned int col) {
     for (int y = 0; y < 5; ++y) {
         if (get_pixel_from_font_data(font_data, col, y)) {
             return 1;
@@ -742,7 +734,7 @@ STATIC int font_column_non_blank(const unsigned char *font_data, unsigned int co
 }
 
 /* Not strictly the rightmost non-blank column, but the rightmost in columns 2,3 or 4. */
-STATIC unsigned int rightmost_non_blank_column(const unsigned char *font_data) {
+static unsigned int rightmost_non_blank_column(const unsigned char *font_data) {
     if (font_column_non_blank(font_data, 4)) {
         return 4;
     }
@@ -768,11 +760,10 @@ static void restart(scrolling_string_iterator_t *iter) {
     }
 }
 
-STATIC mp_obj_t get_microbit_scrolling_string_iter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
+static mp_obj_t get_microbit_scrolling_string_iter(mp_obj_t o_in, mp_obj_iter_buf_t *iter_buf) {
     (void)iter_buf;
     scrolling_string_t *str = (scrolling_string_t *)o_in;
-    scrolling_string_iterator_t *result = m_new_obj(scrolling_string_iterator_t);
-    result->base.type = &microbit_scrolling_string_iterator_type;
+    scrolling_string_iterator_t *result = mp_obj_malloc(scrolling_string_iterator_t, &microbit_scrolling_string_iterator_type);
     result->img = greyscale_new(5,5);
     result->start = str->str;
     result->ref = str->ref;
@@ -783,7 +774,7 @@ STATIC mp_obj_t get_microbit_scrolling_string_iter(mp_obj_t o_in, mp_obj_iter_bu
     return result;
 }
 
-STATIC mp_obj_t microbit_scrolling_string_iter_next(mp_obj_t o_in) {
+static mp_obj_t microbit_scrolling_string_iter_next(mp_obj_t o_in) {
     scrolling_string_iterator_t *iter = (scrolling_string_iterator_t *)o_in;
     if (iter->next_char == iter->end && iter->offset == 5) {
         if (iter->repeat) {
@@ -830,37 +821,19 @@ STATIC mp_obj_t microbit_scrolling_string_iter_next(mp_obj_t o_in) {
     return iter->img;
 }
 
-const mp_obj_type_t microbit_scrolling_string_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_ScrollingString,
-    .print = NULL,
-    .make_new = NULL,
-    .call = NULL,
-    .unary_op = NULL,
-    .binary_op = NULL,
-    .attr = NULL,
-    .subscr = NULL,
-    .getiter = get_microbit_scrolling_string_iter,
-    .iternext = NULL,
-    .buffer_p = {NULL},
-    .locals_dict = NULL,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    microbit_scrolling_string_type,
+    MP_QSTR_ScrollingString,
+    MP_TYPE_FLAG_ITER_IS_GETITER,
+    iter, get_microbit_scrolling_string_iter
+    );
 
-const mp_obj_type_t microbit_scrolling_string_iterator_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_iterator,
-    .print = NULL,
-    .make_new = NULL,
-    .call = NULL,
-    .unary_op = NULL,
-    .binary_op = NULL,
-    .attr = NULL,
-    .subscr = NULL,
-    .getiter = mp_identity_getiter,
-    .iternext = microbit_scrolling_string_iter_next,
-    .buffer_p = {NULL},
-    .locals_dict = NULL,
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    microbit_scrolling_string_iterator_type,
+    MP_QSTR_iterator,
+    MP_TYPE_FLAG_ITER_IS_ITERNEXT,
+    iter, microbit_scrolling_string_iter_next
+    );
 
 /** Facade types to present a string as a sequence of images.
  * These are necessary to avoid allocation during iteration,
@@ -898,21 +871,14 @@ static mp_obj_t facade_unary_op(mp_unary_op_t op, mp_obj_t self_in) {
 
 static mp_obj_t microbit_facade_iterator(mp_obj_t iterable_in, mp_obj_iter_buf_t *iter_buf);
 
-const mp_obj_type_t string_image_facade_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_Facade,
-    .print = NULL,
-    .make_new = NULL,
-    .call = NULL,
-    .unary_op = facade_unary_op,
-    .binary_op = NULL,
-    .attr = NULL,
-    .subscr = string_image_facade_subscr,
-    .getiter = microbit_facade_iterator,
-    .iternext = NULL,
-    .buffer_p = {NULL},
-    NULL
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    string_image_facade_type,
+    MP_QSTR_Facade,
+    MP_TYPE_FLAG_ITER_IS_GETITER,
+    unary_op, facade_unary_op,
+    subscr, string_image_facade_subscr,
+    iter, microbit_facade_iterator
+    );
 
 
 typedef struct _facade_iterator_t {
@@ -923,8 +889,7 @@ typedef struct _facade_iterator_t {
 } facade_iterator_t;
 
 mp_obj_t microbit_string_facade(mp_obj_t string) {
-    string_image_facade_t *result = m_new_obj(string_image_facade_t);
-    result->base.type = &string_image_facade_type;
+    string_image_facade_t *result = mp_obj_malloc(string_image_facade_t, &string_image_facade_type);
     result->string = string;
     result->image = greyscale_new(5,5);
     return result;
@@ -942,21 +907,12 @@ static mp_obj_t microbit_facade_iter_next(mp_obj_t iter_in) {
     return iter->image;
 }
 
-const mp_obj_type_t microbit_facade_iterator_type = {
-    { &mp_type_type },
-    .name = MP_QSTR_iterator,
-    .print = NULL,
-    .make_new = NULL,
-    .call = NULL,
-    .unary_op = NULL,
-    .binary_op = NULL,
-    .attr = NULL,
-    .subscr = NULL,
-    .getiter = mp_identity_getiter,
-    .iternext = microbit_facade_iter_next,
-    .buffer_p = {NULL},
-    NULL
-};
+MP_DEFINE_CONST_OBJ_TYPE(
+    microbit_facade_iterator_type,
+    MP_QSTR_iterator,
+    MP_TYPE_FLAG_ITER_IS_ITERNEXT,
+    iter, microbit_facade_iter_next
+    );
 
 mp_obj_t microbit_facade_iterator(mp_obj_t iterable_in, mp_obj_iter_buf_t *iter_buf) {
     (void)iter_buf;
