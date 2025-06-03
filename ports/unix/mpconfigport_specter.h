@@ -89,3 +89,9 @@
 #undef MICROPY_DEBUG_ERRORS_TO_STDOUT
 #define MICROPY_DEBUG_ERRORS_TO_STDOUT (1)
 #endif // 0
+
+// Allow to override static modifier for global objects, e.g. to use with
+// object code analysis tools which don't support static symbols.
+#ifndef STATIC
+#define STATIC static
+#endif

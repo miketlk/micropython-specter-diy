@@ -62,3 +62,9 @@
 #undef MICROPY_PY_TIME
 #define MICROPY_PY_TIME             (1)
 #endif // 0
+
+// Allow to override static modifier for global objects, e.g. to use with
+// object code analysis tools which don't support static symbols.
+#ifndef STATIC
+#define STATIC static
+#endif
