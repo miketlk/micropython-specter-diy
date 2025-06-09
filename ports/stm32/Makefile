@@ -399,8 +399,8 @@ HAL_SRC_C += $(addprefix $(STM32LIB_HAL_BASE)/Src/stm32$(MCU_SERIES)xx_,\
 	)
 endif
 
-ifeq ($(MCU_SERIES),$(filter $(MCU_SERIES),f0 f4 f7 l0 l4 wb))
-		HAL_SRC_C += $(addprefix $(HAL_DIR)/Src/stm32$(MCU_SERIES)xx_, hal_smartcard.c)
+ifeq ($(MCU_SERIES),$(filter $(MCU_SERIES),f0 f4 f7 g0 g4 h5 h7 l0 l1 l4 wb wl))
+HAL_SRC_C += $(addprefix $(STM32LIB_HAL_BASE)/Src/stm32$(MCU_SERIES)xx_, hal_smartcard.c)
 endif
 
 ifeq ($(MCU_SERIES),$(filter $(MCU_SERIES),f0 f4 f7))
