@@ -107,7 +107,7 @@ MP_WEAK void factory_reset_make_files(FATFS *fatfs) {
     }
 }
 
-MP_WEAK int factory_reset_create_filesystem(uint part_num, const TCHAR* label) {
+MP_WEAK int factory_reset_create_filesystem(uint part_num, const TCHAR *label) {
     // LED on to indicate creation of local filesystem
     led_state(PYB_LED_GREEN, 1);
     uint32_t start_tick = HAL_GetTick();

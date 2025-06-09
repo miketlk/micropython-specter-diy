@@ -3,7 +3,7 @@
 void STM32F469DISC_board_early_init(void);
 
 // TODO: Software SPI not needed anymore, remove after testing
-//#define MICROPY_F469DISC_USE_SOFTSPI // Temporary, enables software 1-bit SPI
+// #define MICROPY_F469DISC_USE_SOFTSPI // Temporary, enables software 1-bit SPI
 
 #define MICROPY_HW_BOARD_NAME       "F469DISC"
 #define MICROPY_HW_MCU_NAME         "STM32F469"
@@ -48,7 +48,7 @@ extern struct _spi_bdev_t spi_bdev;
     (op) == BDEV_IOCTL_NUM_BLOCKS ? (MICROPY_HW_SPIFLASH_SIZE_BITS / 8 / FLASH_BLOCK_SIZE) : \
     (op) == BDEV_IOCTL_INIT ? spi_bdev_ioctl(&spi_bdev, (op), (uint32_t)&spiflash_config) : \
     spi_bdev_ioctl(&spi_bdev, (op), (arg)) \
-)
+    )
 #define MICROPY_HW_BDEV2_READBLOCKS(dest, bl, n) spi_bdev_readblocks(&spi_bdev, (dest), (bl), (n))
 #define MICROPY_HW_BDEV2_WRITEBLOCKS(src, bl, n) spi_bdev_writeblocks(&spi_bdev, (src), (bl), (n))
 // The volume label used when creating the secondary flash filesystem
@@ -72,7 +72,7 @@ extern struct _spi_bdev_t spi_bdev;
 #define MODULE_SCARD_ENABLED        (1)
 #endif
 #ifndef MODULE_SDRAM_ENABLED
-#define MODULE_SDRAM_ENABLED 		(1)
+#define MODULE_SDRAM_ENABLED            (1)
 #endif
 // #define MICROPY_PY_THREAD           (1)
 
@@ -139,4 +139,3 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_USB_FS (1)
 #define MICROPY_HW_USB_VBUS_DETECT_PIN (pin_A9)
 #define MICROPY_HW_USB_OTG_ID_PIN      (pin_A10)
-

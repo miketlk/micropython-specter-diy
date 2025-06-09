@@ -221,8 +221,8 @@ MP_NOINLINE static bool init_flash_fs(uint reset_mode) {
 }
 
 #if defined(MICROPY_HW_BDEV2_IOCTL)
-STATIC bool init_flash_fs_part(uint reset_mode, uint part_num, const char* label,
-                               const char* mount_point) {
+STATIC bool init_flash_fs_part(uint reset_mode, uint part_num, const char *label,
+    const char *mount_point) {
     if (sizeof(label[0]) != sizeof(TCHAR)) { // Sanity check
         return false;
     }
@@ -241,7 +241,7 @@ STATIC bool init_flash_fs_part(uint reset_mode, uint part_num, const char* label
     FRESULT res = f_mount(&vfs_fat->fatfs);
     if (reset_mode == 3 || res == FR_NO_FILESYSTEM) {
         // no filesystem, or asked to reset it, so create a fresh one
-        if(factory_reset_create_filesystem(part_num, (const TCHAR*)label) != 0) {
+        if (factory_reset_create_filesystem(part_num, (const TCHAR *)label) != 0) {
             printf("MPY: can't create flash filesystem\n");
             return false;
         }
@@ -618,10 +618,10 @@ soft_reset:
     #if defined(MICROPY_HW_BDEV2_IOCTL)
     mounted_flash =
         init_flash_fs_part(state.reset_mode, 1, MICROPY_HW_FLASH_FS_LABEL,
-                           qstr_str(MP_QSTR__slash_flash));
+            qstr_str(MP_QSTR__slash_flash));
     mounted_flash2 =
         init_flash_fs_part(state.reset_mode, 2, MICROPY_HW_FLASH_FS2_LABEL,
-                           MICROPY_HW_FLASH_FS2_MOUNT_POINT);
+            MICROPY_HW_FLASH_FS2_MOUNT_POINT);
     #else // defined(MICROPY_HW_BDEV2_IOCTL)
     mounted_flash = init_flash_fs(state.reset_mode);
     #endif // defined(MICROPY_HW_BDEV2_IOCTL)
