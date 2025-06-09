@@ -207,7 +207,7 @@ class ST77xx:
         self.write(ST7789_MADCTL, bytes([value]))
 
     def _encode_pos(self, x, y):
-        """Encode a postion into bytes."""
+        """Encode a position into bytes."""
         return struct.pack(_ENCODE_POS, x, y)
 
     def _encode_pixel(self, color):

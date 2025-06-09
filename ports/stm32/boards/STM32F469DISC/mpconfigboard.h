@@ -96,7 +96,7 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_UART2_RX         (pin_A3) // Dummy, not routed on PCB
 #define MICROPY_HW_UART2_CK         (pin_A4)
 
-// I2C busses
+// I2C buses
 #define MICROPY_HW_I2C1_SCL         (pin_B8)
 #define MICROPY_HW_I2C1_SDA         (pin_B9)
 
@@ -106,7 +106,7 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_SPI2_MISO        (pin_B14)
 #define MICROPY_HW_SPI2_MOSI        (pin_B15)
 
-// CAN busses
+// CAN buses
 #define MICROPY_HW_CAN1_TX          (pin_B9)
 #define MICROPY_HW_CAN1_RX          (pin_B8)
 
