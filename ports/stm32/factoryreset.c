@@ -138,7 +138,7 @@ MP_WEAK int factory_reset_create_filesystem(uint part_num, const TCHAR *label) {
 #else
 
 // If FAT is not enabled then it's up to the board to create a fresh filesystem.
-MP_WEAK int factory_reset_create_filesystem(void) {
+MP_WEAK int factory_reset_create_filesystem(uint part_num, const TCHAR *label) {
     return 0; // success
 }
 
