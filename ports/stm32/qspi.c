@@ -212,14 +212,20 @@ static int qspi_ioctl(void *self_in, uint32_t cmd, uintptr_t arg) {
             // Switch to memory-map mode when bus is idle
             qspi_memory_map();
             break;
+        #if defined(__ICACHE_PRESENT) || defined(__DCACHE_PRESENT)
         case MP_QSPI_IOCTL_MEMORY_MODIFIED: {
             uintptr_t *addr_len = (uintptr_t *)arg;
             volatile void *addr = (volatile void *)(QSPI_MAP_ADDR + addr_len[0]);
             size_t len = addr_len[1];
+            #if defined(__ICACHE_PRESENT) && (__ICACHE_PRESENT == 1)
             SCB_InvalidateICache_by_Addr(addr, len);
+            #endif
+            #if defined(__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1)
             SCB_InvalidateDCache_by_Addr(addr, len);
+            #endif
             break;
         }
+        #endif // defined(__ICACHE_PRESENT) || defined(__DCACHE_PRESENT)
     }
     return 0; // success
 }
