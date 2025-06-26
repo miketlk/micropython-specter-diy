@@ -24,3 +24,16 @@ user.props
 
 # MacOS desktop metadata files
 .DS_Store
+
+# Compiled sources
+*.o
+*.a
+*.elf
+*.bin
+*.map
+*.hex
+*.dis
+*.exe
+*.P
+lextab.py
+yacctab.py
