@@ -18,10 +18,13 @@
 #define MICROPY_DEBUG_ERRORS_TO_STDOUT (1) // Needed for Jupyter kernel in Unix build
 #define MICROPY_PY_BUILTINS_HELP    (1)
 #define MICROPY_PY_BUILTINS_HELP_MODULES (1)
-#define MICROPY_MALLOC_USES_ALLOCATED_SIZE (0)
 #define MICROPY_ENABLE_SCHEDULER    (1)
 #define MICROPY_MODULE_BUILTIN_INIT (1)
 #define MICROPY_PY_CRYPTOLIB_CONSTS (1)
+
+// Extra memory debugging.
+#define MICROPY_MALLOC_USES_ALLOCATED_SIZE (1)
+#define MICROPY_MEM_STATS              (1)
 
 // Bitcoin-related features
 #ifndef MODULE_SECP256K1_ENABLED
@@ -40,8 +43,11 @@
 // Include base configuration file for rest of configuration
 #include <mpconfigport.h>
 
+// Restore memory debugging.
 #undef MICROPY_MALLOC_USES_ALLOCATED_SIZE
-#define MICROPY_MALLOC_USES_ALLOCATED_SIZE (0)
+#define MICROPY_MALLOC_USES_ALLOCATED_SIZE (1)
+#undef MICROPY_MEM_STATS
+#define MICROPY_MEM_STATS              (1)
 
 #if 0 // Enable in case some macros are redefined by "mpconfigport.h" or nested headers
 #undef MICROPY_PY_UCTYPES
