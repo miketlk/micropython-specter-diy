@@ -46,6 +46,9 @@ QSTR_GEN_CFLAGS += $(QSTR_GEN_FLAGS)
 QSTR_GEN_CXXFLAGS := $(CXXFLAGS)
 QSTR_GEN_CXXFLAGS += $(QSTR_GEN_FLAGS)
 
+# Ensure generated helper files are also removed on "make clean"
+CLEAN_EXTRA += $(HEADER_BUILD)/qstr-sources.txt
+
 # This file expects that OBJ contains a list of all of the object files.
 # The directory portion of each object file is used to locate the source
 # and should not contain any ..'s but rather be relative to the top of the
@@ -128,9 +131,20 @@ $(OBJ): | $(HEADER_BUILD)/qstrdefs.generated.h $(HEADER_BUILD)/mpversion.h $(OBJ
 # - else, if list of newer prerequisites ($?) is not empty, then process just these ($?)
 # - else, process all source files ($^) [this covers "make -B" which can set $? to empty]
 # See more information about this process in docs/develop/qstr.rst.
-$(HEADER_BUILD)/qstr.i.last: $(SRC_QSTR) $(QSTR_GLOBAL_DEPENDENCIES) | $(QSTR_GLOBAL_REQUIREMENTS)
+#
+# Implementation note:
+# Normally the full list of sources ($^) is passed directly on the command line.
+# On some systems (notably Docker with Linux kernel ARG_MAX limits), this exceeds
+# the maximum command length. To avoid "Argument list too long", we now dump all
+# $(SRC_QSTR) into a text file and pass it to makeqstrdefs.py with sources-file.
+# This preserves the same semantics while keeping argv short.
+$(HEADER_BUILD)/qstr-sources.txt: $(SRC_QSTR) | $(HEADER_BUILD)
 	$(ECHO) "GEN $@"
-	$(Q)$(PYTHON) $(PY_SRC)/makeqstrdefs.py pp $(CPP) output $(HEADER_BUILD)/qstr.i.last cflags $(QSTR_GEN_CFLAGS) cxxflags $(QSTR_GEN_CXXFLAGS) sources $^ dependencies $(QSTR_GLOBAL_DEPENDENCIES) changed_sources $?
+	$(Q)printf "%s\n" $^ > $@
+
+$(HEADER_BUILD)/qstr.i.last: $(SRC_QSTR) $(QSTR_GLOBAL_DEPENDENCIES) $(HEADER_BUILD)/qstr-sources.txt | $(QSTR_GLOBAL_REQUIREMENTS)
+	$(ECHO) "GEN $@"
+	$(Q)$(PYTHON) $(PY_SRC)/makeqstrdefs.py pp $(CPP) output $(HEADER_BUILD)/qstr.i.last cflags $(QSTR_GEN_CFLAGS) cxxflags $(QSTR_GEN_CXXFLAGS) sources-file $(HEADER_BUILD)/qstr-sources.txt dependencies $(QSTR_GLOBAL_DEPENDENCIES) changed_sources $?
 
 $(HEADER_BUILD)/qstr.split: $(HEADER_BUILD)/qstr.i.last
 	$(ECHO) "GEN $@"

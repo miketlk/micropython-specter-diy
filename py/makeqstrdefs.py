@@ -174,6 +174,7 @@ def cat_together():
 if __name__ == "__main__":
     if len(sys.argv) < 6:
         print("usage: %s command mode input_filename output_dir output_file" % sys.argv[0])
+        print("       (alternatively, provide 'sources-file file_list.txt' instead of listing all sources)")
         sys.exit(2)
 
     class Args:
@@ -193,17 +194,30 @@ if __name__ == "__main__":
                 "sources",
                 "changed_sources",
                 "dependencies",
+                "sources-file",
             ]
         }
 
-        for arg in sys.argv[1:]:
-            if arg in named_args:
+        current_tok = None
+        it = iter(sys.argv[1:])
+        for arg in it:
+            if arg == "sources-file":
+                # consume the filename
+                path = next(it, None)
+                if path:
+                    with open(path) as f:
+                        for line in f:
+                            line = line.strip()
+                            if line:
+                                named_args["sources"].append(line)
+            elif arg in named_args:
                 current_tok = arg
             else:
                 named_args[current_tok].append(arg)
 
         if not named_args["pp"] or len(named_args["output"]) != 1:
             print("usage: %s %s ..." % (sys.argv[0], " ... ".join(named_args)))
+            print("       (alternatively, provide 'sources-file file_list.txt' instead of listing all sources)")
             sys.exit(2)
 
         for k, v in named_args.items():
