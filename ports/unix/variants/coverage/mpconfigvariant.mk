@@ -14,3 +14,5 @@ USER_C_MODULES = $(TOP)/examples/usercmodule
 
 SRC_C += coverage.c
 SRC_CXX += coveragecpp.cpp
+
+MICROPY_PY_FFI = 1
