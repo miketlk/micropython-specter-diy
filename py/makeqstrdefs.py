@@ -174,7 +174,7 @@ def cat_together():
 if __name__ == "__main__":
     if len(sys.argv) < 6:
         print("usage: %s command mode input_filename output_dir output_file" % sys.argv[0])
-        print("       (alternatively, provide 'sources-file file_list.txt' instead of listing all sources)")
+        print("       (use 'sources-file file_list.txt' for a list of sources in a file)")
         sys.exit(2)
 
     class Args:
@@ -217,7 +217,7 @@ if __name__ == "__main__":
 
         if not named_args["pp"] or len(named_args["output"]) != 1:
             print("usage: %s %s ..." % (sys.argv[0], " ... ".join(named_args)))
-            print("       (alternatively, provide 'sources-file file_list.txt' instead of listing all sources)")
+            print("       (use 'sources-file file_list.txt' for a list of sources in a file)")
             sys.exit(2)
 
         for k, v in named_args.items():
