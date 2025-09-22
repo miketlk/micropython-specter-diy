@@ -28,7 +28,8 @@
     <PyBaseDir>$([System.IO.Path]::GetFullPath(`$(MSBuildThisFileDirectory)..\..\..`))\</PyBaseDir>
     <PyWinDir>$(PyBaseDir)ports\windows\</PyWinDir>
     <PyBuildDir Condition="'$(PyBuildDir)' == ''">$(PyWinDir)$(PyBuild)\</PyBuildDir>
-    <PyVariantDir Condition="'$(PyVariantDir)' == ''">$(PyWinDir)variants\$(PyVariant)\</PyVariantDir>
+    <PyVariantDir Condition="'$(PyVariantDir)' == '' and '$(PyVariant)' != ''">$(PyWinDir)variants\$(PyVariant)</PyVariantDir>
+    <PyVariantDir Condition="'$(PyVariantDir)' == '' and '$(PyVariant)' == ''">$(PyWinDir)variants</PyVariantDir>
     <PyTargetDir Condition="'$(PyTargetDir)' == ''">$(PyBuildDir)</PyTargetDir>
 
     <!-- All include directories needed for uPy -->
