@@ -8,9 +8,12 @@
     <PyBuild Condition="'$(PyBuild)' == ''">build-$(PyVariant)</PyBuild>
     <PyProg Condition="'$(PyProg)' == ''">micropython</PyProg>
   </PropertyGroup>
+  <ItemGroup>
+    <QstrDependencies Include="$(PyVariantDir)\mpconfigvariant.h"/>
+  </ItemGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="paths.props" Condition="'$(PyPathsIncluded)' != 'True'"/>
-    <Import Condition="'$(PyBuildingMpyCross)' != 'True'" Project="$(PyVariantDir)mpconfigvariant.props"/>
+    <Import Condition="'$(PyBuildingMpyCross)' != 'True'" Project="$(PyVariantDir)\mpconfigvariant.props"/>
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
@@ -41,7 +44,7 @@
       <Destination>$(PyTargetDir)%(FileName)%(Extension)</Destination>
     </PyOutputFiles>
     <PyCookieFiles Include="$(PyBuildDir)copycookie*" Exclude="$(PyFileCopyCookie)"/>
-    <QstrDependencies Include="$(PyVariantDir)mpconfigvariant.h"/>
+    <QstrDependencies Include="$(PyVariantDir)\mpconfigvariant.h"/>
   </ItemGroup>
 
   <!-- Helper for getting resulting executable path since it depends on other properties. -->
