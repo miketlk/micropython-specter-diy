@@ -2,9 +2,6 @@
 #define MICROPY_BOARD_EARLY_INIT    STM32F469DISC_board_early_init
 void STM32F469DISC_board_early_init(void);
 
-// TODO: Software SPI not needed anymore, remove after testing
-// #define MICROPY_F469DISC_USE_SOFTSPI // Temporary, enables software 1-bit SPI
-
 #define MICROPY_HW_BOARD_NAME       "F469DISC"
 #define MICROPY_HW_MCU_NAME         "STM32F469"
 
@@ -17,34 +14,32 @@ void STM32F469DISC_board_early_init(void);
 #define MICROPY_HW_ENABLE_SDCARD    (1)
 #define MICROPY_PY_UCRYPTOLIB_CONSTS (1)
 
-// use external SPI flash for storage
-#define MICROPY_HW_SPIFLASH_SIZE_BITS (128 * 1024 * 1024)
-
-#ifdef MICROPY_F469DISC_USE_SOFTSPI
-
-#define MICROPY_HW_SPIFLASH_CS      (pin_B6)
-#define MICROPY_HW_SPIFLASH_SCK     (pin_F10)
-#define MICROPY_HW_SPIFLASH_MOSI    (pin_F8)
-#define MICROPY_HW_SPIFLASH_MISO    (pin_F9)
-
-#else // MICROPY_F469DISC_USE_SOFTSPI
-
+// QSPI flash storage configuration
+#if !BUILDING_MBOOT
+#define MICROPY_HW_SPIFLASH_ENABLE_CACHE    (1)
+#endif
+#define MICROPY_HW_SPIFLASH_SOFT_RESET      (1)
+#define MICROPY_HW_SPIFLASH_SIZE_BITS       (128 * 1024 * 1024)
+#define MICROPY_HW_SPIFLASH_CHIP_PARAMS     (1) // enable extended parameters
 #define MICROPY_HW_QSPI_PRESCALER           (3)
-#define MICROPY_HW_QSPI_C4READ_DUMMY_CYCLES (8)
+#define MICROPY_HW_QSPIFLASH_DUMMY_CYCLES   (4)
 #define MICROPY_HW_QSPIFLASH_SIZE_BITS_LOG2 (27)
-#define MICROPY_HW_QSPIFLASH_CS     (pyb_pin_QSPI_CS)
-#define MICROPY_HW_QSPIFLASH_SCK    (pyb_pin_QSPI_CLK)
-#define MICROPY_HW_QSPIFLASH_IO0    (pyb_pin_QSPI_D0)
-#define MICROPY_HW_QSPIFLASH_IO1    (pyb_pin_QSPI_D1)
-#define MICROPY_HW_QSPIFLASH_IO2    (pyb_pin_QSPI_D2)
-#define MICROPY_HW_QSPIFLASH_IO3    (pyb_pin_QSPI_D3)
+#define MICROPY_HW_QSPIFLASH_CS             (pyb_pin_QSPI_CS)
+#define MICROPY_HW_QSPIFLASH_SCK            (pyb_pin_QSPI_CLK)
+#define MICROPY_HW_QSPIFLASH_IO0            (pyb_pin_QSPI_D0)
+#define MICROPY_HW_QSPIFLASH_IO1            (pyb_pin_QSPI_D1)
+#define MICROPY_HW_QSPIFLASH_IO2            (pyb_pin_QSPI_D2)
+#define MICROPY_HW_QSPIFLASH_IO3            (pyb_pin_QSPI_D3)
 
-#endif // MICROPY_F469DISC_USE_SOFTSPI
-
-// block device config for SPI flash
+// QSPI flash block device configuration
 extern const struct _mp_spiflash_config_t spiflash_config;
 extern struct _spi_bdev_t spi_bdev;
-#define MICROPY_HW_SPIFLASH_ENABLE_CACHE (1)
+//#define MICROPY_HW_BDEV_SPIFLASH    (&spi_bdev)
+//#define MICROPY_HW_BDEV_SPIFLASH_CONFIG (&spiflash_config)
+//#define MICROPY_HW_BDEV_SPIFLASH_SIZE_BYTES (MICROPY_HW_SPIFLASH_SIZE_BITS / 8)
+//#define MICROPY_HW_BDEV_SPIFLASH_EXTENDED (&spi_bdev) // for extended block protocol
+
+// Block device 2 is the QSPI flash, used for the second filesystem
 #define MICROPY_HW_BDEV2_IOCTL(op, arg) ( \
     (op) == BDEV_IOCTL_NUM_BLOCKS ? (MICROPY_HW_SPIFLASH_SIZE_BITS / 8 / FLASH_BLOCK_SIZE) : \
     (op) == BDEV_IOCTL_INIT ? spi_bdev_ioctl(&spi_bdev, (op), (uint32_t)&spiflash_config) : \
