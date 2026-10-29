@@ -34,6 +34,10 @@ void stm32_system_init(void);
 #else
 static inline void stm32_system_init(void) {
     SystemInit();
+    #if !defined(STM32F0) && defined(MICROPY_HW_VTOR)
+    // SystemInit resets VTOR to flash origin; restore the board's configured table.
+    SCB->VTOR = MICROPY_HW_VTOR;
+    #endif
 }
 #endif
 
